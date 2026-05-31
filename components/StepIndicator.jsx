@@ -11,6 +11,7 @@
  *
  * Props:
  *   - currentStep : 1 | 2 | 3 | 4
+ *   - isLightTheme : boolean
  */
 
 const STEPS = [
@@ -20,34 +21,56 @@ const STEPS = [
   { id: 4, label: 'Sesi 1: Tes Fisik', shortLabel: 'Sesi 1' },
 ];
 
-export default function StepIndicator({ currentStep }) {
+export default function StepIndicator({ currentStep, isLightTheme = true }) {
   return (
-    <div className="w-full max-w-2xl mx-auto mb-8 px-2">
+    <div className="w-full max-w-2xl mx-auto mb-10 px-4">
       <div className="flex items-center justify-between">
         {STEPS.map((step, idx) => {
           const isCompleted = currentStep > step.id;
           const isActive = currentStep === step.id;
           const isUpcoming = currentStep < step.id;
 
+          // Color tokens depending on light/dark mode
+          const activeCircleBorder = isLightTheme ? 'border-[#2563eb]' : 'border-lime-400';
+          const activeCircleText = isLightTheme ? 'text-[#2563eb]' : 'text-lime-400';
+          const activeCircleGlow = isLightTheme 
+            ? 'shadow-[0_0_15px_rgba(37,99,235,0.2)] bg-[#2563eb]/5' 
+            : 'shadow-[0_0_12px_rgba(163,230,53,0.4)] bg-lime-450/5';
+          
+          const completedGradient = isLightTheme
+            ? { background: 'linear-gradient(135deg, #2563eb, #1d4ed8)' }
+            : { background: 'linear-gradient(135deg, #a3e635, #84cc16)' };
+          
+          const connectorGradient = isLightTheme
+            ? 'linear-gradient(90deg, #2563eb, #1d4ed8)'
+            : 'linear-gradient(90deg, #a3e635, #84cc16)';
+
+          const circleBorderClass = isCompleted
+            ? (isLightTheme ? 'border-[#2563eb] text-white' : 'border-lime-400 text-slate-900')
+            : isActive
+            ? `${activeCircleBorder} ${activeCircleText} ${activeCircleGlow}`
+            : (isLightTheme ? 'border-slate-200 text-slate-300' : 'border-slate-700 text-slate-600');
+
+          const labelColorClass = isActive
+            ? (isLightTheme ? 'text-[#2563eb] font-bold' : 'text-lime-400 font-bold')
+            : isCompleted
+            ? (isLightTheme ? 'text-slate-500 font-medium' : 'text-lime-600 font-medium')
+            : 'text-slate-400';
+
           return (
             <div key={step.id} className="flex items-center flex-1">
               {/* Step circle */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center shrink-0">
                 <div
                   className={`
-                    w-9 h-9 rounded-full flex items-center justify-center
-                    text-sm font-bold border-2 transition-all duration-300
-                    ${isCompleted
-                      ? 'border-lime-400 text-slate-900'
-                      : isActive
-                      ? 'border-lime-400 text-lime-400 shadow-[0_0_12px_rgba(163,230,53,0.4)]'
-                      : 'border-slate-700 text-slate-600'
-                    }
+                    w-10 h-10 rounded-full flex items-center justify-center
+                    text-xs font-black border-2 transition-all duration-300
+                    ${circleBorderClass}
                   `}
-                  style={isCompleted ? { background: 'linear-gradient(135deg, #a3e635, #84cc16)' } : {}}
+                  style={isCompleted ? completedGradient : {}}
                 >
                   {isCompleted ? (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                   ) : (
@@ -57,17 +80,17 @@ export default function StepIndicator({ currentStep }) {
                 {/* Label */}
                 <span
                   className={`
-                    mt-1.5 text-[10px] font-medium text-center leading-tight hidden sm:block
-                    ${isActive ? 'text-lime-400' : isCompleted ? 'text-lime-600' : 'text-slate-600'}
+                    mt-2 text-[9px] uppercase tracking-wider text-center leading-tight hidden sm:block
+                    ${labelColorClass}
                   `}
-                  style={{ maxWidth: '64px' }}
+                  style={{ maxWidth: '80px' }}
                 >
                   {step.label}
                 </span>
                 <span
                   className={`
-                    mt-1.5 text-[10px] font-medium text-center leading-tight sm:hidden
-                    ${isActive ? 'text-lime-400' : isCompleted ? 'text-lime-600' : 'text-slate-600'}
+                    mt-2 text-[9px] uppercase tracking-wider text-center leading-tight sm:hidden
+                    ${labelColorClass}
                   `}
                 >
                   {step.shortLabel}
@@ -76,12 +99,12 @@ export default function StepIndicator({ currentStep }) {
 
               {/* Connector line */}
               {idx < STEPS.length - 1 && (
-                <div className="flex-1 mx-1 sm:mx-2 h-px mb-5 relative">
-                  <div className="absolute inset-0 bg-slate-700 rounded" />
+                <div className="flex-1 mx-2 sm:mx-4 h-0.5 mb-5 relative">
+                  <div className={`absolute inset-0 ${isLightTheme ? 'bg-slate-100' : 'bg-slate-700'} rounded`} />
                   <div
                     className="absolute inset-0 rounded transition-all duration-500"
                     style={{
-                      background: 'linear-gradient(90deg, #a3e635, #84cc16)',
+                      background: connectorGradient,
                       transform: `scaleX(${isCompleted ? 1 : 0})`,
                       transformOrigin: 'left',
                     }}
