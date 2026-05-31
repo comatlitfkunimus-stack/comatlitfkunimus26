@@ -70,55 +70,10 @@ export default function RegistrasiPage() {
     prodi: '',
     weight: '',
     height: '',
-    researcher_id: '',
   });
-  const [researchersList, setResearchersList] = useState([]);
   const [errors, setErrors] = useState({});
   const [bmiResult, setBmiResult] = useState(null);
   const [toast, setToast] = useState(null);
-
-  // Fetch researchers for the athlete to select from
-  useEffect(() => {
-    async function loadResearchers() {
-      let list = [];
-      try {
-        const { data, error } = await supabase
-          .from('researchers')
-          .select('id, name, username');
-        if (data && data.length > 0) {
-          list = data;
-        }
-      } catch (e) {
-        console.warn('Failed to load DB researchers, using offline fallback', e);
-      }
-
-      // Merge local storage ones if any
-      let local = [];
-      try {
-        const stored = localStorage.getItem('com7_local_researchers');
-        if (stored) local = JSON.parse(stored);
-      } catch {}
-
-      const merged = [...local, ...list, ...[
-        { id: 'd3b07384-d113-49cd-a5d6-89d023b12345', name: 'Dr. Ahmad Fauzi', username: 'ahmad.fauzi' },
-        { id: 'a5b28345-e214-48cc-b6d7-98e134c56789', name: 'Dr. Siti Rahayu', username: 'siti.rahayu' },
-        { id: 'c7c39456-f325-49dd-c7e8-09f245d67890', name: 'Budi Santoso, M.Kes', username: 'budi.santoso' }
-      ]];
-
-      // Deduplicate by username
-      const seen = new Set();
-      const unique = [];
-      merged.forEach(r => {
-        if (!seen.has(r.username)) {
-          seen.add(r.username);
-          unique.push(r);
-        }
-      });
-
-      setResearchersList(unique);
-    }
-    loadResearchers();
-  }, []);
 
   // Hitung BMI real-time setiap kali berat/tinggi berubah
   useEffect(() => {
@@ -140,7 +95,6 @@ export default function RegistrasiPage() {
     if (!form.age || isNaN(age) || age < 10 || age > 60)
       errs.age = 'Umur harus antara 10–60 tahun';
     if (!form.prodi) errs.prodi = 'Pilih Program Studi';
-    if (!form.researcher_id) errs.researcher_id = 'Pilih Peneliti Pemeriksa';
     const weight = parseFloat(form.weight);
     if (!form.weight || isNaN(weight) || weight < 20 || weight > 300)
       errs.weight = 'Berat badan harus antara 20–300 kg';
@@ -164,6 +118,9 @@ export default function RegistrasiPage() {
       return;
     }
 
+    // Peneliti di-set secara default ke pemeriksa aktif atau default id
+    const defaultResearcherId = researcher?.id || 'd3b07384-d113-49cd-a5d6-89d023b12345';
+
     setAthleteProfile({
       name: form.name.trim(),
       age: parseInt(form.age, 10),
@@ -172,7 +129,7 @@ export default function RegistrasiPage() {
       height: parseFloat(form.height),
       bmi: bmiResult.bmi,
       bmiCategory: bmiResult.category,
-      researcher_id: form.researcher_id,
+      researcher_id: defaultResearcherId,
     });
 
     router.push('/pre-test');
@@ -211,7 +168,7 @@ export default function RegistrasiPage() {
         <div className="mb-10 text-center sm:text-left">
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Registrasi Profil Atlet</h1>
           <p className="text-slate-400 text-xs mt-1 font-medium">
-            Lengkapi data profil naracoba secara presisi.
+            Lengkapi data profil Anda untuk memulai pengujian.
           </p>
         </div>
 
@@ -219,26 +176,6 @@ export default function RegistrasiPage() {
         <form onSubmit={handleSubmit} noValidate className="bg-white border border-[#e2e8f0] rounded-lg p-8 md:p-10 shadow-none">
           <div className="space-y-8">
             
-            {/* Peneliti Pendamping / Pemeriksa */}
-            <div className="space-y-1">
-              <label htmlFor="reg-researcher" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Peneliti Pendamping / Pemeriksa <span className="text-red-400">*</span>
-              </label>
-              <select
-                id="reg-researcher"
-                name="researcher_id"
-                value={form.researcher_id}
-                onChange={handleChange}
-                className={`${inputClass('researcher_id')} cursor-pointer`}
-              >
-                <option value="">-- Pilih Peneliti Pendamping --</option>
-                {researchersList.map((r) => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </select>
-              {errors.researcher_id && <p className="text-xs text-red-400">{errors.researcher_id}</p>}
-            </div>
-
             {/* Nama Lengkap */}
             <div className="space-y-1">
               <label htmlFor="reg-name" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
