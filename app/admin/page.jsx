@@ -983,6 +983,7 @@ export default function AdminDashboardPage() {
         {currentMenu === 'registration' && (
           <div className="space-y-8">
             {/* Registrasi Akun Peneliti Baru */}
+            <div className="bg-white border border-slate-100 rounded-xl p-6 shadow-[0_4px_30px_rgba(0,0,0,0.015)]">
               <div className="mb-6 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#2563eb]" />
                 <div>
